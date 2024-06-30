@@ -10,7 +10,7 @@ import {
   ActionIcon,
 } from '@mantine/core';
 import { useState, useEffect, useCallback } from 'react';
-import { MoonStars, Sun, Trash, Edit } from 'tabler-icons-react';
+import { MoonStars, Sun, Trash, Edit, Check } from 'tabler-icons-react';
 import { MantineProvider, ColorSchemeProvider } from '@mantine/core';
 import { useColorScheme, useLocalStorage, useHotkeys } from '@mantine/hooks';
 
@@ -34,10 +34,8 @@ export default function App() {
     [colorScheme, setColorScheme]
   );
 
- 
-
   const createTask = useCallback(() => {
-    const newTask = { title: taskTitle, summary: taskSummary };
+    const newTask = { title: taskTitle, summary: taskSummary, completed: false };
     const updatedTasks = editIndex === null ? [...tasks, newTask] : tasks.map((task, index) => index === editIndex ? newTask : task);
     setTasks(updatedTasks);
     saveTasks(updatedTasks);
@@ -63,6 +61,12 @@ export default function App() {
     setOpened(true);
   }, [tasks]);
 
+  const markAsCompleted = useCallback((index) => {
+    const updatedTasks = tasks.map((task, i) => i === index ? { ...task, completed: true } : task);
+    setTasks(updatedTasks);
+    saveTasks(updatedTasks);
+  }, [tasks]);
+
   const loadTasks = useCallback(() => {
     const loadedTasks = JSON.parse(localStorage.getItem('tasks'));
     if (loadedTasks) {
@@ -83,7 +87,7 @@ export default function App() {
       <MantineProvider theme={{ colorScheme, defaultRadius: 'md' }} withGlobalStyles withNormalizeCSS>
         <div
           className="App"
-          // style={}
+         
         >
           <Modal
             opened={opened}
@@ -147,7 +151,9 @@ export default function App() {
               tasks.map((task, index) => (
                 <Card withBorder key={index} mt="sm" style={{ width: '100%' }}>
                   <Group position="apart">
-                    <Text weight="bold">{task.title}</Text>
+                    <Text weight="bold" style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
+                      {task.title}
+                    </Text>
                     <Group>
                       <ActionIcon
                         onClick={() => editTask(index)}
@@ -163,9 +169,18 @@ export default function App() {
                       >
                         <Trash />
                       </ActionIcon>
+                      {!task.completed && (
+                        <ActionIcon
+                          onClick={() => markAsCompleted(index)}
+                          color="green"
+                          variant="transparent"
+                        >
+                          <Check />
+                        </ActionIcon>
+                      )}
                     </Group>
                   </Group>
-                  <Text color="dimmed" size="md" mt="sm">
+                  <Text color="dimmed" size="md" mt="sm" style={{ textDecoration: task.completed ? 'line-through' : 'none' }}>
                     {task.summary || 'No summary was provided for this task'}
                   </Text>
                 </Card>
